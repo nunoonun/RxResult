@@ -30,7 +30,7 @@ public extension ObservableType where E: ResultProtocol {
   public func `do`(onSuccess: (@escaping (Self.E.Value) throws -> Void))
     -> Observable<E> {
       return `do`(onNext: { (value) in
-        guard let successValue = value.value else {
+        guard let successValue = value.result.value else {
           return
         }
         try onSuccess(successValue)
@@ -40,7 +40,7 @@ public extension ObservableType where E: ResultProtocol {
   public func `do`(onFailure: (@escaping (Self.E.Error) throws -> Void))
     -> Observable<E> {
       return `do`(onNext: { (value) in
-        guard let failureValue = value.error else {
+        guard let failureValue = value.result.error else {
           return
         }
         try onFailure(failureValue)
@@ -50,9 +50,9 @@ public extension ObservableType where E: ResultProtocol {
   public func `do`(onSuccess: ((Self.E.Value) throws -> Void)?, onFailure: ((Self.E.Error) throws -> Void)?)
     -> Observable<E> {
       return `do`(onNext: { (value) in
-        if let successValue = value.value {
+        if let successValue = value.result.value {
           try onSuccess?(successValue)
-        } else if let errorValue = value.error {
+        } else if let errorValue = value.result.error {
           try onFailure?(errorValue)
       }
       })
@@ -61,9 +61,9 @@ public extension ObservableType where E: ResultProtocol {
   public func subscribeResult(onSuccess: ((Self.E.Value) -> Void)? = nil,
                               onFailure: ((Self.E.Error) -> Void)? = nil) -> Disposable {
     return subscribe(onNext: { value in
-      if let successValue = value.value {
+      if let successValue = value.result.value {
         onSuccess?(successValue)
-      } else if let errorValue = value.error {
+      } else if let errorValue = value.result.error {
         onFailure?(errorValue)
       }
     })
