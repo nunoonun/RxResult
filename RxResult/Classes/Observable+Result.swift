@@ -15,8 +15,8 @@ public protocol RxResultError: Error {
 
 public extension ObservableType {
 
-  func mapResult<U: RxResultError>(_ errorType: U.Type) -> Observable<Result<E, U>> {
-    return self.map(Result<E, U>.success)
+    func mapResult<U: RxResultError>(_ errorType: U.Type) -> Observable<Result<Element, U>> {
+        return self.map(Result<Element, U>.success)
       .catchError{ error in
         if let error = error as? U {
             return .just(Result.failure(error))
@@ -25,10 +25,10 @@ public extension ObservableType {
     }
 }
 
-public extension ObservableType where E: ResultProtocol {
+public extension ObservableType where Element: ResultProtocol {
 
-  func `do`(onSuccess: (@escaping (Self.E.Value) throws -> Void))
-    -> Observable<E> {
+    func `do`(onSuccess: (@escaping (Self.Element.Value) throws -> Void))
+        -> Observable<Element> {
       return `do`(onNext: { (value) in
         guard let successValue = value.result.value else {
           return
@@ -37,8 +37,8 @@ public extension ObservableType where E: ResultProtocol {
       })
   }
 
-  func `do`(onFailure: (@escaping (Self.E.Error) throws -> Void))
-    -> Observable<E> {
+    func `do`(onFailure: (@escaping (Self.Element.Error) throws -> Void))
+        -> Observable<Element> {
       return `do`(onNext: { (value) in
         guard let failureValue = value.result.error else {
           return
@@ -47,8 +47,8 @@ public extension ObservableType where E: ResultProtocol {
       })
   }
 
-  func `do`(onSuccess: ((Self.E.Value) throws -> Void)?, onFailure: ((Self.E.Error) throws -> Void)?)
-    -> Observable<E> {
+    func `do`(onSuccess: ((Self.Element.Value) throws -> Void)?, onFailure: ((Self.Element.Error) throws -> Void)?)
+        -> Observable<Element> {
       return `do`(onNext: { (value) in
         if let successValue = value.result.value {
           try onSuccess?(successValue)
@@ -58,8 +58,8 @@ public extension ObservableType where E: ResultProtocol {
       })
   }
 
-  func subscribeResult(onSuccess: ((Self.E.Value) -> Void)? = nil,
-                              onFailure: ((Self.E.Error) -> Void)? = nil) -> Disposable {
+    func subscribeResult(onSuccess: ((Self.Element.Value) -> Void)? = nil,
+                         onFailure: ((Self.Element.Error) -> Void)? = nil) -> Disposable {
     return subscribe(onNext: { value in
       if let successValue = value.result.value {
         onSuccess?(successValue)
