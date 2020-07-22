@@ -1,6 +1,6 @@
 //
 //  Reactive.swift
-//  Rx
+//  RxSwift
 //
 //  Created by Yury Korolev on 5/2/16.
 //  Copyright © 2016 Krunoslav Zaher. All rights reserved.
@@ -23,56 +23,57 @@
  */
 
 public struct Reactive<Base> {
-    /**
-    Base object to extend.
-    */
+    /// Base object to extend.
     public let base: Base
 
-    /**
-     Creates extensions with base object.
-     
-     - parameter base: Base object.
-    */
+    /// Creates extensions with base object.
+    ///
+    /// - parameter base: Base object.
     public init(_ base: Base) {
         self.base = base
     }
 }
 
-/**
- A type that has reactive extensions.
- */
+/// A type that has reactive extensions.
 public protocol ReactiveCompatible {
-    associatedtype CompatibleType
+    /// Extended type
+    associatedtype ReactiveBase
 
-    /**
-     Reactive extensions.
-    */
-    static var rx: Reactive<CompatibleType>.Type { get }
+    @available(*, deprecated, renamed: "ReactiveBase")
+    typealias CompatibleType = ReactiveBase
 
-    /**
-     Reactive extensions.
-    */
-    var rx: Reactive<CompatibleType> { get }
+    /// Reactive extensions.
+    static var rx: Reactive<ReactiveBase>.Type { get set }
+
+    /// Reactive extensions.
+    var rx: Reactive<ReactiveBase> { get set }
 }
 
-public extension ReactiveCompatible {
-    /**
-     Reactive extensions.
-    */
+extension ReactiveCompatible {
+    /// Reactive extensions.
     public static var rx: Reactive<Self>.Type {
-        return Reactive<Self>.self
+        get {
+            return Reactive<Self>.self
+        }
+        // swiftlint:disable:next unused_setter_value
+        set {
+            // this enables using Reactive to "mutate" base type
+        }
     }
 
-    /**
-     Reactive extensions.
-    */
+    /// Reactive extensions.
     public var rx: Reactive<Self> {
-        return Reactive(self)
+        get {
+            return Reactive(self)
+        }
+        // swiftlint:disable:next unused_setter_value
+        set {
+            // this enables using Reactive to "mutate" base object
+        }
     }
 }
 
-import Foundation
-/**
- Extend NSObject with `rx` proxy.
-*/
+import class Foundation.NSObject
+
+/// Extend NSObject with `rx` proxy.
 extension NSObject: ReactiveCompatible { }

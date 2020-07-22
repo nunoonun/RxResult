@@ -1,12 +1,14 @@
 //
 //  ConcurrentMainScheduler.swift
-//  Rx
+//  RxSwift
 //
 //  Created by Krunoslav Zaher on 10/17/15.
 //  Copyright © 2015 Krunoslav Zaher. All rights reserved.
 //
 
-import Foundation
+import struct Foundation.Date
+import struct Foundation.TimeInterval
+import Dispatch
 
 /**
 Abstracts work that needs to be performed on `MainThread`. In case `schedule` methods are called from main thread, it will perform action immediately without scheduling.
@@ -21,38 +23,34 @@ public final class ConcurrentMainScheduler : SchedulerType {
     private let _mainScheduler: MainScheduler
     private let _mainQueue: DispatchQueue
 
-    /**
-    - returns: Current time.
-    */
-    public var now : Date {
-        return _mainScheduler.now as Date
+    /// - returns: Current time.
+    public var now: Date {
+        return self._mainScheduler.now as Date
     }
 
     private init(mainScheduler: MainScheduler) {
-        _mainQueue = DispatchQueue.main
-        _mainScheduler = mainScheduler
+        self._mainQueue = DispatchQueue.main
+        self._mainScheduler = mainScheduler
     }
 
-    /**
-    Singleton instance of `ConcurrentMainScheduler`
-    */
+    /// Singleton instance of `ConcurrentMainScheduler`
     public static let instance = ConcurrentMainScheduler(mainScheduler: MainScheduler.instance)
 
     /**
-    Schedules an action to be executed immediatelly.
+    Schedules an action to be executed immediately.
 
     - parameter state: State passed to the action to be executed.
     - parameter action: Action to be executed.
     - returns: The disposable object used to cancel the scheduled action (best effort).
     */
     public func schedule<StateType>(_ state: StateType, action: @escaping (StateType) -> Disposable) -> Disposable {
-        if Thread.current.isMainThread {
+        if DispatchQueue.isMain {
             return action(state)
         }
 
         let cancel = SingleAssignmentDisposable()
 
-        _mainQueue.async {
+        self._mainQueue.async {
             if cancel.isDisposed {
                 return
             }
@@ -71,8 +69,8 @@ public final class ConcurrentMainScheduler : SchedulerType {
     - parameter action: Action to be executed.
     - returns: The disposable object used to cancel the scheduled action (best effort).
     */
-    public final func scheduleRelative<StateType>(_ state: StateType, dueTime: Foundation.TimeInterval, action: @escaping (StateType) -> Disposable) -> Disposable {
-        return _mainScheduler.scheduleRelative(state, dueTime: dueTime, action: action)
+    public final func scheduleRelative<StateType>(_ state: StateType, dueTime: RxTimeInterval, action: @escaping (StateType) -> Disposable) -> Disposable {
+        return self._mainScheduler.scheduleRelative(state, dueTime: dueTime, action: action)
     }
 
     /**
@@ -84,7 +82,7 @@ public final class ConcurrentMainScheduler : SchedulerType {
     - parameter action: Action to be executed.
     - returns: The disposable object used to cancel the scheduled action (best effort).
     */
-    public func schedulePeriodic<StateType>(_ state: StateType, startAfter: TimeInterval, period: TimeInterval, action: @escaping (StateType) -> StateType) -> Disposable {
-        return _mainScheduler.schedulePeriodic(state, startAfter: startAfter, period: period, action: action)
+    public func schedulePeriodic<StateType>(_ state: StateType, startAfter: RxTimeInterval, period: RxTimeInterval, action: @escaping (StateType) -> StateType) -> Disposable {
+        return self._mainScheduler.schedulePeriodic(state, startAfter: startAfter, period: period, action: action)
     }
 }
